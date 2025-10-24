@@ -16,8 +16,11 @@ class Settings:
         # CORS
         self.BACKEND_CORS_ORIGINS: List[str] = ["*"]
         
-        # Database - PostgreSQL only
-        self.DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost:5432/katana"
+        # Database - default to SQLite for zero-config dev; can be overridden to PostgreSQL
+        # Examples:
+        #   sqlite+aiosqlite:///./app.db
+        #   postgresql+asyncpg://user:password@localhost:5432/katana
+        self.DATABASE_URL: str = "sqlite+aiosqlite:///./app.db"
         self.SQL_ECHO: bool = False
         self.SQL_POOL_SIZE: int = 5
         self.SQL_MAX_OVERFLOW: int = 10

@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi import HTTPException
+from starlette.responses import JSONResponse
+import uuid
 
 from .core.config import get_settings
 from .core.logging import setup_logging
@@ -63,7 +67,54 @@ def create_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["X-Request-ID"],
     )
+
+    # Error handlers
+    @app.exception_handler(HTTPException)
+    async def http_exception_handler(request: Request, exc: HTTPException):
+        req_id = getattr(request.state, "request_id", None)
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "error": {
+                    "message": exc.detail,
+                    "code": exc.status_code,
+                },
+                "request_id": req_id,
+            },
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        req_id = getattr(request.state, "request_id", None)
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": {
+                    "message": "Validation error",
+                    "details": exc.errors(),
+                    "code": 422,
+                },
+                "request_id": req_id,
+            },
+        )
+
+    # Root route
+    @app.get("/")
+    async def root(request: Request):
+        settings = get_settings()
+        return {
+            "name": settings.PROJECT_NAME,
+            "version": settings.VERSION,
+            "env": settings.ENV,
+            "docs": app.docs_url,
+            "redoc": app.redoc_url,
+            "openapi": app.openapi_url,
+            "health": "/healthz",
+            "ready": "/readyz",
+            "request_id": request.headers.get("X-Request-ID") or request.state.request_id,
+        }
 
     # Routers
     app.include_router(api_router)
@@ -71,5 +122,16 @@ def create_app() -> FastAPI:
     return app
 
 
+def request_id_middleware(app: FastAPI):
+    @app.middleware("http")
+    async def add_request_id(request: Request, call_next):
+        req_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        request.state.request_id = req_id
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = req_id
+        return response
+
+
 # Create the app instance at module level
 app = create_app()
+request_id_middleware(app)
