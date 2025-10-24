@@ -1,3 +1,5 @@
+## Don't use this repo until the development is finished.
+
 ### FastAPI Template Starter
 
 A minimal, production-ready FastAPI project scaffold designed to be maintainable, database-friendly, and easy to develop with. It follows a clean modular structure with a repository + service pattern.
