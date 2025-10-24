@@ -9,11 +9,11 @@ from fastapi import HTTPException
 from starlette.responses import JSONResponse
 import uuid
 
-from .core.config import get_settings
-from .core.logging import setup_logging
-from .api.routes import api_router
-from .db.session import engine
-from .models.base import Base
+from app.core.config import get_settings
+from app.core.logging import setup_logging
+from app.api.routes import api_router
+from app.db.session import engine
+from app.models.base import Base
 
 logger = logging.getLogger(__name__)
 

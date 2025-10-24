@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from ...core.config import get_settings
-from ...db.session import AsyncSessionLocal
+from app.core.config import get_settings
+from app.db.session import AsyncSessionLocal
 
 router = APIRouter()
 

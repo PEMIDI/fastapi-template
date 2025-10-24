@@ -3,4 +3,4 @@ __all__ = [
     "app",
 ]
 
-from .app import create_app, app  # noqa: E402
+from app.app import create_app, app  # noqa: E402

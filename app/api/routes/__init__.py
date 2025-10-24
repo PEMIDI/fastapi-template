@@ -1,4 +1,4 @@
-from .health import router as health_router  # re-export
+from app.api.routes.health import router as health_router  # re-export
 
 from fastapi import APIRouter
 
